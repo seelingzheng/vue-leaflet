@@ -1,0 +1,83 @@
+<template>
+  <div>
+    <div id="map"></div>
+    <div class="btn">
+      <button @click="changeMap">切换</button>
+    </div>
+  </div>
+</template>
+
+<script>
+export default {
+  data() {
+    return {
+      map: null,
+      normal: null,
+      stat: null,
+      group: null
+    };
+  },
+  mounted() {
+    this.map = L.map("map", {
+      center: [22.0, 120.0],
+      zoom: 7
+    });
+    this.normal = L.tileLayer("./../static/autonavi.com/{z}/{y}/{x}.png", {
+      attribution: "高德"
+    }).addTo(this.map);
+    this.group = L.layerGroup();
+
+    var url =
+      "http://webst0{s}.is.autonavi.com/appmaptile?style={type}&x={x}&y={y}&z={z}";
+    var basemap = L.tileLayer(url, {
+      type: "6",
+      subdomains: ["1", "2", "3", "4"],
+      attribution: "高德"
+    }).addTo(this.group);
+    var annotion = L.tileLayer(url, {
+      type: "8",
+      subdomains: ["1", "2", "3", "4"],
+      attribution: "高德"
+    }).addTo(this.group);
+    L.Icon.Default.prototype.options.imagePath = "./../static/images/";
+    // this.map.on("moveend", this.addMarker);
+    this.addMarker();
+  },
+  methods: {
+    changeMap() {
+      if (this.map.hasLayer(this.normal)) {
+        this.map.removeLayer(this.normal);
+        this.group.addTo(this.map);
+      } else {
+        this.map.removeLayer(this.group);
+        this.normal.addTo(this.map);
+      }
+    },
+    addMarker() {
+      var rect = L.rectangle([[30, 120], [20, 110]], {
+        color: "rgba(255,0,255,0.3)",
+        dashArray: "5, 10",
+        fill: true,
+        fillColor: "red"
+      })
+        .bindPopup(JSON.stringify(this.map.getCenter()))
+        .addTo(this.map);
+      this.map.flyToBounds(rect);
+    }
+  }
+};
+</script>
+
+<!-- Add "scoped" attribute to limit CSS to this component only -->
+<style scoped>
+#map {
+  width: 100%;
+  height: calc(100vh);
+}
+.btn {
+  position: absolute;
+  left: 100px;
+  top: 100px;
+  z-index: 1001;
+}
+</style>
